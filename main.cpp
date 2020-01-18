@@ -5,7 +5,10 @@
 #include<opencv2/highgui.hpp>
 #include<opencv2/core.hpp>
 #include<opencv2/imgproc.hpp>
+
 #include "ioh.hpp"
+#include "sad.hpp"
+#include "ncc.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -24,12 +27,15 @@ int main(int argc, char const *argv[])
     cv::Mat leftMat(3,3, CV_32F), rightMat(3,3, CV_32F);
     cv::Mat cameraMats[2] = {leftMat, rightMat};
     ioh.readCalib(cameraMats);
-    std::cout << "left camera:" << leftMat << std::endl
-              << "right camera:" << rightMat << std::endl;
     cv::Mat leftImg, rightImg;
     ioh.readImage(leftImg, rightImg);
     cv::namedWindow("debug", cv::WINDOW_AUTOSIZE);
     cv::imshow("debug", leftImg);
+    cv::waitKey(0);
+    // SAD matcher(20, ndisp);
+    NCC matcher(5, ndisp);
+    cv::Mat disparity = matcher.do_match(leftImg, rightImg);
+    cv::imshow("debug", disparity);
     cv::waitKey(0);
     cv::destroyWindow("debug");
     /* 

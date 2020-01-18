@@ -43,7 +43,6 @@ int IOHelper::readCalib(cv::Mat mats[2])
             getline(calibParam, line);
             line.erase(0, line.find_first_of('[')+1);
             line.erase(line.find_last_of(']'));
-            std::cout << line << std::endl;
             std::istringstream ls(line);
             std::string token;
             std::size_t sz;
@@ -61,6 +60,12 @@ int IOHelper::readCalib(cv::Mat mats[2])
                 }
             }
         }
+        // while(getline(calibParam, line))
+        // {
+        //     std::istringstream ls(line);
+        //     std::string key;
+        //     std::getline(ls, key, '=');
+        // }
         //TODO read height width and baseline
     }
     return 1;
@@ -68,6 +73,6 @@ int IOHelper::readCalib(cv::Mat mats[2])
 // read image from dir
 void IOHelper::readImage(cv::Mat& left_img, cv::Mat& right_img)
 {
-    left_img = cv::imread(im0Path);
-    right_img = cv::imread(im0Path);
+    left_img = cv::imread(im0Path, 0);
+    right_img = cv::imread(im1Path, 0);
 }
