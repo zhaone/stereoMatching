@@ -49,6 +49,5 @@ Mat NCC::do_match(Mat &leftImage, Mat &rightImage)
         }
         double rate = double(i) / (Width);
     }
-    cout << "Disparity: " << Disparity << endl;
     return Disparity;
 }
