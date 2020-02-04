@@ -14,6 +14,7 @@
 #include "sad.hpp"
 #include "ncc.hpp"
 #include "mrf.hpp"
+#include "bp.hpp"
 
 double countTime()
 {
@@ -39,7 +40,7 @@ int main(int argc, char const *argv[])
     else
         method = argv[5];
 
-    cvui::init(WINDOW_NAME);
+    // cvui::init(WINDOW_NAME);
     // read param (no use now) and images
     IOHelper ioh;
     ioh.setUp(im0, im1, ndisp, outdir);
@@ -67,8 +68,14 @@ int main(int argc, char const *argv[])
         NCC matcher(20, ndisp);
         disparity = matcher.do_match(leftImg, rightImg);
     }
-    else if (method == "BP"){
-        disparity = do_match(leftImg, rightImg, 20, 10, ndisp, 2);
+    else if (method == "BP2"){
+        // disparity = do_match(leftImg, rightImg, 20, 10, ndisp, 2);
+        BP matcher(ndisp, 10, 2, 2);
+        disparity = matcher.do_match(leftImg, rightImg, 1);
+    }
+    else if (method == "BP")
+    {
+        disparity = do_match(leftImg, rightImg, 3, 10, ndisp, 2);
     }
     const double endTime = countTime();
     cout << "cost time: " << (endTime - beginTime) / CLOCKS_PER_SEC << endl;

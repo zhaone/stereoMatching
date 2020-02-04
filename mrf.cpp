@@ -1,16 +1,14 @@
 #include <iostream>
 #include "mrf.hpp"
-
+// initialize the Markov Random Field
+// 
 void initializeMarkovRandomField(MarkovRandomField &mrf, Mat leftImg, Mat rightImg,
                                  const MarkovRandomFieldParam param)
 {
-    // Mat leftImg = imread(leftImgPath, 0);
-    // Mat rightImg = imread(rightImgPath, 0);
-
-    // mrf.height = leftImg.cols;
-    // mrf.width = leftImg.rows;
     mrf.height = leftImg.rows;
     mrf.width = leftImg.cols;
+    std::cout << "height:" << mrf.height << ", width:"
+              << mrf.width << ", img size:" << leftImg.size() << std::endl;
     mrf.grid.resize(mrf.height * mrf.width);
     mrf.param = param;
 
@@ -24,28 +22,39 @@ void initializeMarkovRandomField(MarkovRandomField &mrf, Mat leftImg, Mat rightI
 
         for (int idx = 0; idx < mrf.param.maxDisparity; idx++)
         {
+            // following 4 mean that there are 4 neibor, then 4 message
+            // this is message m_{st}
             mrf.grid[pos].leftMessage[idx] = 0;
             mrf.grid[pos].rightMessage[idx] = 0;
             mrf.grid[pos].upMessage[idx] = 0;
             mrf.grid[pos].downMessage[idx] = 0;
+            // this is message m_s
+            // seems m_s(x_s) = y_s[x_s]
+            // just matching cost, this code use sum of abs of sub
             mrf.grid[pos].dataMessage[idx] = 0;
         }
     }
 
-    const int border = mrf.param.maxDisparity;
+    int pb = mrf.param.maxDisparity + 2;
+    cv::Mat leftPaddingImg, rightPaddingImg;
+    cv::copyMakeBorder(leftImg, leftPaddingImg, pb, pb, pb, pb, cv::BORDER_REPLICATE);
+    cv::copyMakeBorder(rightImg, rightPaddingImg, pb, pb, pb, pb, cv::BORDER_REPLICATE);
 
-    for (int y = border; y < mrf.height - border; y++)
+    for (int y = 0; y < mrf.height; y++)
     {
-        for (int x = border; x < mrf.width - border; x++)
+        for (int x = 0; x < mrf.width ; x++)
         {
             for (int i = 0; i < mrf.param.maxDisparity; i++)
             {
-                mrf.grid[y * mrf.width + x].dataMessage[i] = calculateDataCost(leftImg, rightImg, x, y, i);
+                // TODO, how to init these have no full ys (the pixels fall in the borders)
+                mrf.grid[y * mrf.width + x].dataMessage[i] = calculateDataCost(leftPaddingImg, rightPaddingImg, y, x, i, mrf.param.maxDisparity);
             }
         }
     }
 }
-
+// compute and update m_{st}
+// this is sum but it is multiply in paper
+// no problem, matches formula 2.
 void sendMsg(MarkovRandomField &mrf, const int x, const int y, const Direction dir)
 {
     const int disp = mrf.param.maxDisparity;
@@ -83,7 +92,7 @@ void sendMsg(MarkovRandomField &mrf, const int x, const int y, const Direction d
             mrf.grid[y * w + x - 1].leftMessage[i] = newMsg[i];
             break;
         case Right:
-            mrf.grid[y * w + x - 1].rightMessage[i] = newMsg[i];
+            mrf.grid[y * w + x + 1].rightMessage[i] = newMsg[i];
             break;
         case Up:
             mrf.grid[(y - 1) * w + x].upMessage[i] = newMsg[i];
@@ -109,24 +118,25 @@ void beliefPropagation(MarkovRandomField &mrf, const Direction dir)
         {
             for (int x = 1; x < w; x++)
             {
-                sendMsg(mrf, x, y, Left);
+                sendMsg(mrf, x, y, dir);
             }
         }
         break;
     case Right:
-        for (int y = 0; y < h; y++)
+        for (int y = 1; y < h; y++)
         {
-            for (int x = w - 1; x > 0; x--)
+            for (int x = 0; x < w - 1; x++)
             {
-                sendMsg(mrf, x, y, Left);
+                sendMsg(mrf, x, y, dir);
             }
         }
         break;
     case Up:
         for (int x = 0; x < w; x++)
         {
-            for (int y = h - 1; y > 0; y--)
+            for (int y = 1; y < h; y++)
             {
+                // sendMsg(mrf, x, y, dir);
                 sendMsg(mrf, x, y, dir);
             }
         }
@@ -147,6 +157,7 @@ void beliefPropagation(MarkovRandomField &mrf, const Direction dir)
 
 energy_t calculateMaxPosteriorProbability(MarkovRandomField &mrf)
 {
+    // this matches the formula 3. in paper, but seems omit the m_s(x_s)
     for (int i = 0; i < mrf.grid.size(); i++)
     {
         unsigned int best = UINT_MAX;
@@ -196,26 +207,45 @@ energy_t calculateMaxPosteriorProbability(MarkovRandomField &mrf)
 
     return energy;
 }
+// compute the data cost, what's data cost?
+// so radius <= y <= height-radius and radius <= x <=weight-radius-disarpity
+// in this way, there will exist some black margin in result image. How to slove this?
+// data_cost_t calculateDataCost(Mat &leftImg, Mat &rightImg, const int x, const int y, const int disparity)
+// {
+//     const int radius = 2;
 
-data_cost_t calculateDataCost(Mat &leftImg, Mat &rightImg, const int x, const int y, const int disparity)
+//     int sum = 0;
+
+//     for (int dy = -radius; dy <= radius; dy++)
+//     {
+//         for (int dx = -radius; dx <= radius; dx++)
+//         {
+//             const int l = leftImg.at<uchar>(y + dy, x + dx);
+//             const int r = rightImg.at<uchar>(y + dy, x + dx - disparity);
+//             sum += abs(l - r);
+//         }
+//     }
+
+//     const data_cost_t avg = sum / ((radius * 2 + 1) * (radius * 2 + 1));
+
+//     return avg;
+// }
+data_cost_t calculateDataCost(cv::Mat &leftPaddingImg, cv::Mat &rightPaddingImg, const int h, const int w, const int d, const int disp)
 {
-    const int radius = 2;
+    int ph = disp + h;
+    int pw = disp + w;
+    int radius = 2;
+    int dim = 2 * radius + 1;
+    // Rect
+    cv::Mat w1 = leftPaddingImg(cv::Rect(pw, ph, dim, dim));
+    cv::Mat w2 = rightPaddingImg(cv::Rect(pw + d, ph, dim, dim));
 
-    int sum = 0;
+    cv::Mat absDiff;
+    cv::absdiff(w1, w2, absDiff);
+    float cost = cv::mean(absDiff)[0];
 
-    for (int dy = -radius; dy <= radius; dy++)
-    {
-        for (int dx = -radius; dx <= radius; dx++)
-        {
-            const int l = leftImg.at<uchar>(y + dy, x + dx);
-            const int r = rightImg.at<uchar>(y + dy, x + dx - disparity);
-            sum += abs(l - r);
-        }
-    }
-
-    const data_cost_t avg = sum / ((radius * 2 + 1) * (radius * 2 + 1));
-
-    return avg;
+    // return (1-ep) * std::exp(-cost/dd) + ep;
+    return cost;
 }
 
 smoothness_cost_t calculateSmoothnessCost(const int i, const int j, const int lambda, const int smoothnessParam)
@@ -239,6 +269,7 @@ Mat do_match(Mat leftImg, Mat rightImg, int iter, int lambda, int maxDisp, int s
 
     for (int i = 0; i < mrf.param.iteration; i++)
     {
+        // send message to left node
         beliefPropagation(mrf, Left);
         cout << "left" << endl;
         beliefPropagation(mrf, Right);
@@ -254,10 +285,10 @@ Mat do_match(Mat leftImg, Mat rightImg, int iter, int lambda, int maxDisp, int s
     }
 
     Mat output = Mat::zeros(mrf.height, mrf.width, CV_8U);
-
-    for (int i = mrf.param.maxDisparity; i < mrf.height - mrf.param.maxDisparity; i++)
+    // TODO, rectify the boder
+    for (int i = 0; i < mrf.height; i++)
     {
-        for (int j = mrf.param.maxDisparity; j < mrf.width - mrf.param.maxDisparity; j++)
+        for (int j = 0; j < mrf.width; j++)
         {
             output.at<uchar>(i, j) = mrf.grid[i * mrf.width + j].bestAssignmentIndex * (256 / mrf.param.maxDisparity);
         }

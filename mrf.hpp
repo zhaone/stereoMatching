@@ -51,6 +51,6 @@ void beliefPropagation(MarkovRandomField &mrf, Direction dir);
 Mat do_match(Mat leftImg, Mat rightImg, int iter, int lambda, int maxDisp, int smoothParam);
 energy_t calculateMaxPosteriorProbability(MarkovRandomField &mrf);
 
-data_cost_t calculateDataCost(Mat &leftImg, Mat &rightImg, int x, int y, int disparity);
+data_cost_t calculateDataCost(cv::Mat &leftPaddingImg, cv::Mat &rightPaddingImg, const int h, const int w, const int d, const int disp);
 smoothness_cost_t calculateSmoothnessCost(int i, int j, int lambda, int smoothnessParam);
 #endif
