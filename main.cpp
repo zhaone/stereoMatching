@@ -68,14 +68,14 @@ int main(int argc, char const *argv[])
         NCC matcher(20, ndisp);
         disparity = matcher.do_match(leftImg, rightImg);
     }
-    else if (method == "BP2"){
-        // disparity = do_match(leftImg, rightImg, 20, 10, ndisp, 2);
-        BP matcher(ndisp, 10, 2, 2);
-        disparity = matcher.do_match(leftImg, rightImg, 1);
-    }
     else if (method == "BP")
     {
-        disparity = do_match(leftImg, rightImg, 3, 10, ndisp, 2);
+        disparity = do_match(leftImg, rightImg, 5, 0.05, ndisp, 3);
+    }
+    else if (method == "BP2")
+    {
+        BP matcher(leftImg, rightImg, ndisp, 1, 2*float(ndisp), 10);
+        disparity = matcher.do_match();
     }
     const double endTime = countTime();
     cout << "cost time: " << (endTime - beginTime) / CLOCKS_PER_SEC << endl;

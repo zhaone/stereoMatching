@@ -18,10 +18,10 @@ enum Direction
     Data
 };
 
-typedef unsigned int msg_t;
-typedef unsigned int energy_t;
-typedef unsigned int smoothness_cost_t;
-typedef unsigned int data_cost_t;
+typedef float msg_t;
+typedef float energy_t;
+typedef float smoothness_cost_t;
+typedef float data_cost_t;
 
 struct MarkovRandomFieldNode
 {
@@ -35,12 +35,13 @@ struct MarkovRandomFieldNode
 
 struct MarkovRandomFieldParam
 {
-    int maxDisparity, lambda, iteration, smoothnessParam;
+    int maxDisparity, iteration;
+    float lambda, smoothnessParam;
 };
 
 struct MarkovRandomField
 {
-    vector<MarkovRandomFieldNode> grid;
+    vector<vector<MarkovRandomFieldNode>> grid;
     MarkovRandomFieldParam param;
     int height, width;
 };
@@ -48,9 +49,9 @@ struct MarkovRandomField
 void initializeMarkovRandomField(MarkovRandomField &mrf, Mat leftImg, Mat rightImg, MarkovRandomFieldParam param);
 void sendMsg(MarkovRandomField &mrf, int x, int y, Direction dir);
 void beliefPropagation(MarkovRandomField &mrf, Direction dir);
-Mat do_match(Mat leftImg, Mat rightImg, int iter, int lambda, int maxDisp, int smoothParam);
+Mat do_match(Mat leftImg, Mat rightImg, int iter, int maxDisp, float lambda, float smoothParam);
 energy_t calculateMaxPosteriorProbability(MarkovRandomField &mrf);
 
 data_cost_t calculateDataCost(cv::Mat &leftPaddingImg, cv::Mat &rightPaddingImg, const int h, const int w, const int d, const int disp);
-smoothness_cost_t calculateSmoothnessCost(int i, int j, int lambda, int smoothnessParam);
+smoothness_cost_t calculateSmoothnessCost(int i, int j, float lambda, float smoothnessParam);
 #endif
