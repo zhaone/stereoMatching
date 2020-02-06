@@ -9,7 +9,7 @@
 #include "ioh.hpp"
 #include "sad.hpp"
 #include "ncc.hpp"
-#include "bp.hpp"
+#include "bpm.hpp"
 
 double countTime()
 {
@@ -46,7 +46,7 @@ int main(int argc, char const *argv[])
     cv::namedWindow("debug", cv::WINDOW_AUTOSIZE);
     cv::imshow("debug", leftImg);
     cv::waitKey(0);
-    
+
     // matching
     std::cout << "use method: " << method << std::endl;
     std::cout << "start matching..." << std::endl;
