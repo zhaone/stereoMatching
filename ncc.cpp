@@ -1,4 +1,4 @@
-// see https://blog.csdn.net/aaronmorgan/article/details/79121434
+// see https://blog.csdn.net/liulina603/article/details/53302168
 #include <iostream>
 #include <iomanip>
 #include <opencv2/opencv.hpp>
@@ -7,47 +7,56 @@
 using namespace std;
 using namespace cv;
 
-Mat NCC::do_match(Mat &leftImage, Mat &rightImage)
+Mat NCC::do_match(Mat &aleftImage, Mat &arightImage)
 {
-    int Height = leftImage.rows;
-    int Width = leftImage.cols;
-    cv::Mat L,R;
-    leftImage.convertTo(L, CV_32FC1);
-    rightImage.convertTo(R, CV_32FC1);
-    cv::Mat Disparity(Height, Width, CV_8U, Scalar(0));
-    
-    for (int i = 0; i < Width - winSize; i++)
+    int height = aleftImage.rows;
+    int width = aleftImage.cols;
+    Mat leftImg, rightImg;
+    cout << "image shape: " << height << "," << width << endl;
+    aleftImage.convertTo(leftImg, CV_32FC1, 1 / 255.0);
+    arightImage.convertTo(rightImg, CV_32FC1, 1 / 255.0);
+
+    int pb = disp + radius;
+    cv::Mat leftPaddingImg, rightPaddingImg;
+    cv::copyMakeBorder(leftImg, leftPaddingImg, pb, pb, pb, pb, cv::BORDER_REPLICATE);
+    cv::copyMakeBorder(rightImg, rightPaddingImg, pb, pb, pb, pb, cv::BORDER_REPLICATE);
+
+    Mat dispMap(height, width, CV_8UC1);
+
+    int dim = 2 * radius + 1;
+    for(int h = 0; h < height; h++)
     {
-        for (int j = 0; j < Height - winSize; j++)
+        for (int w = 0; w < width; w++)
         {
-            cv::Mat Kernel_L = L(Rect(i, j, winSize, winSize));
-            cv::Scalar meanL = cv::mean(Kernel_L);
-            Kernel_L -= meanL;
+            int ph = disp + h;
+            int pw = disp + w;
 
-            Mat MM(1, DSR, CV_32F, Scalar(0));
+            cv::Mat w1 = leftPaddingImg(cv::Rect(pw, ph, dim, dim));
+            cv::Scalar mean1 = cv::mean(w1);
+            cv::Mat sub1 = w1 - mean1;
 
-            for (int k = 0; k < DSR; k++)
+            int bestIdx = 0;
+            float maxVal = -10000000;
+            for(int d = 0; d < disp; d++)
             {
-                int x = i - k;
-                if (x >= 0)
-                {
-                    cv::Mat Kernel_R = R(Rect(x, j, winSize, winSize));
-                    cv::Scalar meanR = cv::mean(Kernel_R);
-                    Kernel_R -= meanR;
+                // Rect
+                cv::Mat w2 = rightPaddingImg(cv::Rect(pw - d, ph, dim, dim));
+                cv::Scalar mean2 = cv::mean(w2);
+                cv::Mat sub2 = w2 - mean2;
 
-                    cv::Scalar numerator = cv::sum(Kernel_L.mul(Kernel_R));
-                    cv::Scalar denominator = cv::norm(Kernel_L) * cv::norm(Kernel_R);
-                    float a = (numerator/denominator)[0];
-                    MM.at<float>(k) = a;
+                cv::Scalar numerator = cv::sum(sub1.mul(sub2));
+                double denominator = cv::norm(w1) * cv::norm(w2);
+                float tmp = (numerator / denominator)[0];
+                
+
+                if (tmp > maxVal)
+                {
+                    maxVal = tmp;
+                    bestIdx = d;
                 }
             }
-            Point minLoc;
-            minMaxLoc(MM, NULL, NULL, &minLoc, NULL);
-
-            int loc = minLoc.x;
-            Disparity.at<uchar>(j, i) = loc*4;
+            dispMap.at<uchar>(h, w) = bestIdx;
         }
-        double rate = double(i) / (Width);
     }
-    return Disparity;
+    return dispMap;
 }

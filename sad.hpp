@@ -6,10 +6,11 @@
 class SAD
 {
 public:
-    SAD() : winSize(7), DSR(30) {}
-    SAD(int _winSize, int _DSR) : winSize(_winSize), DSR(_DSR) {}
-    cv::Mat do_match(cv::Mat &L, cv::Mat &R); 
+    SAD() : radius(2), disp(30) {}
+    SAD(int _radius, int _disp) : radius(_radius), disp(_disp) {}
+    cv::Mat do_match(cv::Mat &leftImage, cv::Mat &rightImage);
+
 private:
-    int winSize; //kernel size
-    int DSR;     //search window size
+    int radius; //kernel size
+    int disp;   //search window size
 };

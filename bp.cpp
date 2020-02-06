@@ -26,8 +26,8 @@ BP::~BP(){}
 BP::BP(Mat &aleftImg, Mat &arightImg, const int ndisp, const float smoothLambda, const float costLambda, int aiter)
 {
     // TODO convert to float?
-    leftImg = aleftImg;
-    rightImg = arightImg;
+    aleftImg.convertTo(leftImg, CV_32FC1, 1 / 255.0);
+    arightImg.convertTo(rightImg, CV_32FC1, 1 / 255.0);
     height = leftImg.rows;
     width = leftImg.cols;
     disp = ndisp;
@@ -43,8 +43,6 @@ BP::BP(Mat &aleftImg, Mat &arightImg, const int ndisp, const float smoothLambda,
     cv::copyMakeBorder(leftImg, leftPaddingImg, pb, pb, pb, pb, cv::BORDER_REPLICATE);
     cv::copyMakeBorder(rightImg, rightPaddingImg, pb, pb, pb, pb, cv::BORDER_REPLICATE);
 
-    // cout << "padding size:" << leftPaddingImg.size() << endl;
-
     msg.resize(height);
     obs.resize(height);
     for (int h = 0; h < height; h++)
@@ -58,7 +56,6 @@ BP::BP(Mat &aleftImg, Mat &arightImg, const int ndisp, const float smoothLambda,
             Mat tmp(cv::Size(1, disp), CV_32FC1);
             for (int d = 0; d < disp; d++)
             {
-                // TODO this float?
                 tmp.at<float>(d, 0)= calculateDataCost(leftPaddingImg, rightPaddingImg, h, w, d);
             }
             obs[h][w] = costLambda * tmp / sum(tmp);
@@ -71,7 +68,6 @@ BP::BP(Mat &aleftImg, Mat &arightImg, const int ndisp, const float smoothLambda,
         for (int d2 = 0; d2 < disp; d2++)
         {
             float diff = float(abs(d1 - d2));
-            // smoothCostMat.at<float>(d1, d2) = exp(diff/disp) lambda*(diff < sp ? diff : sp);
             smoothCostMat.at<float>(d1, d2) = smoothLambda * (log(diff + 1));
         }
     }
@@ -88,17 +84,15 @@ float BP::calculateDataCost(cv::Mat &leftPaddingImg, cv::Mat &rightPaddingImg, c
     
     // Rect
     cv::Mat w1 = leftPaddingImg(cv::Rect(pw, ph, dim, dim));
-    cv::Mat w2 = rightPaddingImg(cv::Rect(pw + d, ph, dim, dim));
+    cv::Mat w2 = rightPaddingImg(cv::Rect(pw - d, ph, dim, dim));
 
-    // TODO convert to float?
     cv::Mat absDiff;
     cv::absdiff(w1, w2, absDiff);
 
     return float(sum(absDiff.mul(absDiff))[0]);
-    // return float(sum(absDiff)[0]);
 }
 
-void BP::beliefPropagate()
+void BP::beliefPropagate(bool visualize=false)
 {
     for (int i = 0; i < iter; i++)
     {
@@ -139,12 +133,12 @@ void BP::beliefPropagate()
                 }
             }
         }
-        // debug
-        cout << "msg[100][100]" << endl
-             << msg[100][100] << endl;
-        Mat iterMap = getDispMap();
-        cv::imshow("debug", iterMap);
-        cv::waitKey(0);
+        if(visualize)
+        {
+            Mat iterMap = getDispMap();
+            cv::imshow("debug", iterMap);
+            cv::waitKey(0);
+        }
     }
 }
 
@@ -192,6 +186,5 @@ Mat BP::getDispMap()
 Mat BP::do_match()
 {
     beliefPropagate();
-    cout<< "start get map" << endl;
     return getDispMap();
 }

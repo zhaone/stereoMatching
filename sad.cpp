@@ -1,4 +1,3 @@
-// see https://blog.csdn.net/liulina603/article/details/53302168
 #include <iostream>
 #include <iomanip>
 #include <opencv2/opencv.hpp>
@@ -7,43 +6,51 @@
 using namespace std;
 using namespace cv;
 
-Mat SAD::do_match(Mat &L, Mat &R)
+Mat SAD::do_match(Mat &aleftImage, Mat &arightImage)
 {
-    int Height = L.rows;
-    int Width = L.cols;
-    cout << "image shape: " << Height << "," << Width << endl;
-    Mat Kernel_L(Size(winSize, winSize), CV_8U, Scalar::all(0));
-    Mat Kernel_R(Size(winSize, winSize), CV_8U, Scalar::all(0));
-    Mat Disparity(Height, Width, CV_8U, Scalar(0));
+    int height = aleftImage.rows;
+    int width = aleftImage.cols;
+    Mat leftImg, rightImg;
+    cout << "image shape: " << height << "," << width << endl;
+    aleftImage.convertTo(leftImg, CV_32FC1, 1 / 255.0);
+    arightImage.convertTo(rightImg, CV_32FC1, 1 / 255.0);
 
-    for (int i = 0; i < Width - winSize; i++) //
+    int pb = disp + radius;
+    cv::Mat leftPaddingImg, rightPaddingImg;
+    cv::copyMakeBorder(leftImg, leftPaddingImg, pb, pb, pb, pb, cv::BORDER_REPLICATE);
+    cv::copyMakeBorder(rightImg, rightPaddingImg, pb, pb, pb, pb, cv::BORDER_REPLICATE);
+
+    Mat dispMap(height, width, CV_8UC1);
+
+    int dim = 2 * radius + 1;
+    for (int h = 0; h < height; h++)
     {
-        for (int j = 0; j < Height - winSize; j++)
+        for (int w = 0; w < width; w++)
         {
-            Kernel_L = L(Rect(i, j, winSize, winSize));
-            Mat MM(1, DSR, CV_32F, Scalar(0)); //
+            int ph = disp + h;
+            int pw = disp + w;
 
-            for (int k = 0; k < DSR; k++)
+            cv::Mat w1 = leftPaddingImg(cv::Rect(pw, ph, dim, dim));
+
+            int bestIdx = 0;
+            float maxVal = 10000000;
+            for (int d = 0; d < disp; d++)
             {
-                int x = i - k;
-                if (x >= 0)
+                // Rect
+                cv::Mat w2 = rightPaddingImg(cv::Rect(pw - d, ph, dim, dim));
+                Mat Dif;
+                absdiff(w1, w2, Dif);
+                Scalar ADD = sum(Dif);
+                float tmp = ADD[0];
+
+                if (tmp < maxVal)
                 {
-                    Kernel_R = R(Rect(x, j, winSize, winSize));
-                    Mat Dif;
-                    absdiff(Kernel_L, Kernel_R, Dif); //
-                    Scalar ADD = sum(Dif);
-                    float a = ADD[0];
-                    MM.at<float>(k) = a;
+                    maxVal = tmp;
+                    bestIdx = d;
                 }
             }
-            Point minLoc;
-            minMaxLoc(MM, NULL, NULL, &minLoc, NULL);
-
-            int loc = minLoc.x;
-            Disparity.at<char>(j, i) = loc * 16;
+            dispMap.at<uchar>(h, w) = bestIdx;
         }
-        double rate = double(i) / (Width);
-        // cout << "Process: " << rate * 100 << "%" << endl;
     }
-    return Disparity;
+    return dispMap;
 }

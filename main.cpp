@@ -6,14 +6,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#define CVUI_IMPLEMENTATION
-#include "cvui.h"
-#define WINDOW_NAME "CVUI Test"
-
 #include "ioh.hpp"
 #include "sad.hpp"
 #include "ncc.hpp"
-#include "mrf.hpp"
 #include "bp.hpp"
 
 double countTime()
@@ -39,9 +34,6 @@ int main(int argc, char const *argv[])
         method = "BP";
     else
         method = argv[5];
-
-    // cvui::init(WINDOW_NAME);
-    // read param (no use now) and images
     IOHelper ioh;
     ioh.setUp(im0, im1, ndisp, outdir);
     cv::Mat leftMat(3, 3, CV_32F), rightMat(3, 3, CV_32F);
@@ -50,9 +42,11 @@ int main(int argc, char const *argv[])
 
     cv::Mat leftImg, rightImg;
     ioh.readImage(leftImg, rightImg);
+
     cv::namedWindow("debug", cv::WINDOW_AUTOSIZE);
     cv::imshow("debug", leftImg);
     cv::waitKey(0);
+    
     // matching
     std::cout << "use method: " << method << std::endl;
     std::cout << "start matching..." << std::endl;
@@ -60,19 +54,15 @@ int main(int argc, char const *argv[])
     const double beginTime = countTime();
     if (method == "SAD")
     {
-        SAD matcher(20, ndisp);
+        SAD matcher(2, ndisp);
         disparity = matcher.do_match(leftImg, rightImg);
     }
     else if (method == "NCC")
     {
-        NCC matcher(20, ndisp);
+        NCC matcher(3, ndisp);
         disparity = matcher.do_match(leftImg, rightImg);
     }
     else if (method == "BP")
-    {
-        disparity = do_match(leftImg, rightImg, 5, 0.05, ndisp, 3);
-    }
-    else if (method == "BP2")
     {
         BP matcher(leftImg, rightImg, ndisp, 1, 2*float(ndisp), 10);
         disparity = matcher.do_match();
