@@ -9,7 +9,8 @@
 #include "ioh.hpp"
 #include "sad.hpp"
 #include "ncc.hpp"
-#include "bpm.hpp"
+#include "bp.hpp"
+#include "mbp.hpp"
 
 double countTime()
 {
@@ -64,7 +65,12 @@ int main(int argc, char const *argv[])
     }
     else if (method == "BP")
     {
-        BP matcher(leftImg, rightImg, ndisp, 1, 2*float(ndisp), 10);
+        BP matcher(leftImg, rightImg, ndisp, 1, 2 * float(ndisp), 10);
+        disparity = matcher.do_match();
+    }
+    else if (method == "MBP")
+    {
+        MBP matcher(leftImg, rightImg, ndisp, 1, 2*float(ndisp), 10);
         disparity = matcher.do_match();
     }
     const double endTime = countTime();
