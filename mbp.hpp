@@ -1,3 +1,5 @@
+#ifndef MBP_H
+#define MBP_H
 #include <opencv2/opencv.hpp>
 #include <vector>
 
@@ -30,3 +32,4 @@ class MBP
         Mat getDispMap();
         Mat do_match();
 };
+#endif

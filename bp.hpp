@@ -1,3 +1,5 @@
+#ifndef BP_H
+#define BP_H
 #include <opencv2/opencv.hpp>
 #include <vector>
 
@@ -26,3 +28,4 @@ public:
     Mat getDispMap();
     Mat do_match();
 };
+#endif

@@ -1,3 +1,5 @@
+#ifndef NCC_H
+#define NCC_H
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <iomanip>
@@ -12,3 +14,4 @@ private:
     int radius;  //kernel size
     int disp;     //search window size
 };
+#endif

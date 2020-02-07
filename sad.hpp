@@ -1,7 +1,7 @@
-
+#ifndef SAD_H
+#define SAD_H
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <iomanip>
 
 class SAD
 {
@@ -14,3 +14,4 @@ private:
     int radius; //kernel size
     int disp;   //search window size
 };
+#endif
