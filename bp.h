@@ -1,5 +1,6 @@
 #ifndef BP_H
 #define BP_H
+
 #include <opencv2/opencv.hpp>
 #include <vector>
 
@@ -20,7 +21,7 @@ private:
     vector<vector<Mat>> obs;
 
 public:
-    BP(Mat &leftImg, Mat &rightImg, const int disp, const float lambda, const float sp, int iter);
+    BP(Mat &leftImg, Mat &rightImg, const int disp, const float smoothLambda, const float costLambda, int iter);
     ~BP();
     float calculateDataCost(cv::Mat &leftPaddingImg, cv::Mat &rightPaddingImg, const int h, const int w, const int d);
     void beliefPropagate(bool visualize);
@@ -28,4 +29,6 @@ public:
     Mat getDispMap();
     Mat do_match();
 };
-#endif
+
+
+#endif // BP_H

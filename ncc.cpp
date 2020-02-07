@@ -1,8 +1,7 @@
-// see https://blog.csdn.net/liulina603/article/details/53302168
 #include <iostream>
 #include <iomanip>
 #include <opencv2/opencv.hpp>
-#include "ncc.hpp"
+#include "ncc.h"
 
 using namespace std;
 using namespace cv;
@@ -47,7 +46,7 @@ Mat NCC::do_match(Mat &aleftImage, Mat &arightImage)
                 cv::Scalar numerator = cv::sum(sub1.mul(sub2));
                 double denominator = cv::norm(w1) * cv::norm(w2);
                 float tmp = (numerator / denominator)[0];
-                
+
 
                 if (tmp > maxVal)
                 {

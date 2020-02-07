@@ -1,12 +1,12 @@
 #include <iostream>
 #include <thread>
 #include <opencv2/opencv.hpp>
-#include "mbp.hpp"
+#include "mbp.h"
 
 using namespace cv;
 using namespace std;
 
-int get_min_idx_m(Mat &message, int disp)
+int get_min_idx_m(cv::Mat &message, int disp)
 {
     float bestValue = 100000000;
     int bestIdx = 0;
@@ -53,7 +53,7 @@ MBP::MBP(Mat &aleftImg, Mat &arightImg, const int ndisp, const float smoothLambd
         obs[h].resize(width);
     }
 
-    int NumThread = 4;
+    int NumThread = 8;
     int sh, eh, lineEveryThread = height / NumThread;
     vector<thread> tpool(NumThread);
     for (int tid = 0; tid < NumThread; tid++)
@@ -121,7 +121,6 @@ void MBP::beliefPropagateThread(vector<vector<Mat>> &msgCopy, int sh, int eh)
 {
     for (int dir = 0; dir < 4; dir++)
     {
-        cout << "dir: " << dir << endl;
         // for (int h = 1; h < height - 1; h++)
         for (int h = sh; h < eh; h++)
         {
@@ -154,7 +153,6 @@ void MBP::beliefPropagate(bool visualize = false)
     {
         cout << "iter " << i << " start" << endl;
         // copy msg
-        cout << "copy message" << endl;
         vector<vector<Mat>> msgCopy(height);
         for (int h = 0; h < height; h++)
         {
@@ -163,7 +161,7 @@ void MBP::beliefPropagate(bool visualize = false)
                 msgCopy[h][w] = msg[h][w].clone();
         }
         // pass
-        int NumThread = 4;
+        int NumThread = 8;
         int sh, eh, lineEveryThread = height / NumThread;
         vector<thread> tpool(NumThread);
         for (int tid = 0; tid < NumThread; tid++)
@@ -212,7 +210,6 @@ Mat MBP::maxProduct(vector<vector<Mat>> &msgCopy, int h, int w, int dir)
 
 Mat MBP::getDispMap()
 {
-    int minIdx = 0;
     Mat DispMap(cv::Size(width, height), CV_8UC1);
     for (int h = 0; h < height; h++)
     {
@@ -231,6 +228,6 @@ Mat MBP::getDispMap()
 
 Mat MBP::do_match()
 {
-    beliefPropagate(true);
+    beliefPropagate(false);
     return getDispMap();
 }

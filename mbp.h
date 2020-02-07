@@ -1,5 +1,6 @@
 #ifndef MBP_H
 #define MBP_H
+
 #include <opencv2/opencv.hpp>
 #include <vector>
 
@@ -22,7 +23,7 @@ class MBP
         vector<vector<Mat>> obs;
 
     public:
-        MBP(Mat &leftImg, Mat &rightImg, const int disp, const float lambda, const float sp, int iter);
+        MBP(Mat &leftImg, Mat &rightImg, const int disp, const float smoothLambda, const float costLambda, int iter);
         ~MBP();
         float calculateDataCost(const int h, const int w, const int d);
         void calculateDataCostThread(int sh, int eh);
@@ -32,4 +33,5 @@ class MBP
         Mat getDispMap();
         Mat do_match();
 };
-#endif
+
+#endif // MBP_H
