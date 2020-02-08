@@ -12,11 +12,6 @@
 #include "bp.hpp"
 #include "mbp.hpp"
 
-double countTime()
-{
-    return static_cast<double>(clock());
-}
-
 int main(int argc, char const *argv[])
 {
     // parse args
@@ -29,30 +24,30 @@ int main(int argc, char const *argv[])
     std::string im0 = std::string(argv[1]);
     std::string im1 = std::string(argv[2]);
     int ndisp = atoi(argv[3]);
-    std::string outdir = std::string(argv[4]);
+    std::string outPath = std::string(argv[4]);
     std::string method;
     if (argc == 5)
-        method = "BP";
+        method = "MBP";
     else
         method = argv[5];
     IOHelper ioh;
-    ioh.setUp(im0, im1, ndisp, outdir);
-    cv::Mat leftMat(3, 3, CV_32F), rightMat(3, 3, CV_32F);
-    cv::Mat cameraMats[2] = {leftMat, rightMat};
-    ioh.readCalib(cameraMats);
+    ioh.setUp(im0, im1, ndisp, outPath);
+    // cv::Mat leftMat(3, 3, CV_32F), rightMat(3, 3, CV_32F);
+    // cv::Mat cameraMats[2] = {leftMat, rightMat};
+    // ioh.readCalib(cameraMats);
 
     cv::Mat leftImg, rightImg;
     ioh.readImage(leftImg, rightImg);
 
-    cv::namedWindow("debug", cv::WINDOW_AUTOSIZE);
-    cv::imshow("debug", leftImg);
-    cv::waitKey(0);
+    // cv::namedWindow("debug", cv::WINDOW_AUTOSIZE);
+    // cv::imshow("debug", leftImg);
+    // cv::waitKey(0);
 
     // matching
     std::cout << "use method: " << method << std::endl;
     std::cout << "start matching..." << std::endl;
     cv::Mat disparity;
-    const double beginTime = countTime();
+    clock_t beginTime = clock();
     if (method == "SAD")
     {
         SAD matcher(2, ndisp);
@@ -65,20 +60,22 @@ int main(int argc, char const *argv[])
     }
     else if (method == "BP")
     {
-        BP matcher(leftImg, rightImg, ndisp, 1, 2 * float(ndisp), 10);
+        BP matcher(leftImg, rightImg, ndisp, 1, 2 * float(ndisp), 5);
         disparity = matcher.do_match();
     }
     else if (method == "MBP")
     {
-        MBP matcher(leftImg, rightImg, ndisp, 1, 2*float(ndisp), 10);
+        MBP matcher(leftImg, rightImg, ndisp, 1, 2*float(ndisp), 5);
         disparity = matcher.do_match();
     }
-    const double endTime = countTime();
-    cout << "cost time: " << (endTime - beginTime) / CLOCKS_PER_SEC << endl;
+    clock_t endTime = clock();
+    cout << "method: " << method << " ,cost time: " << (double)(endTime - beginTime) / CLOCKS_PER_SEC << endl;
 
-    cv::imshow("debug", disparity);
-    cv::imwrite(method + ".png", disparity);
-    cv::waitKey(0);
-    cv::destroyWindow("debug");
+    // cv::imshow("debug", disparity);
+    // for png visualization
+    // disparity *= 65535 / ndisp;
+    cv::imwrite(outPath, disparity);
+    // cv::waitKey(0);
+    // cv::destroyWindow("debug");
     return 0;
 }

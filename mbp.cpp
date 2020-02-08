@@ -53,7 +53,7 @@ MBP::MBP(Mat &aleftImg, Mat &arightImg, const int ndisp, const float smoothLambd
         obs[h].resize(width);
     }
 
-    int NumThread = 4;
+    int NumThread = 8;
     int sh, eh, lineEveryThread = height / NumThread;
     vector<thread> tpool(NumThread);
     for (int tid = 0; tid < NumThread; tid++)
@@ -121,7 +121,7 @@ void MBP::beliefPropagateThread(vector<vector<Mat>> &msgCopy, int sh, int eh)
 {
     for (int dir = 0; dir < 4; dir++)
     {
-        cout << "dir: " << dir << endl;
+        // cout << "dir: " << dir << endl;
         // for (int h = 1; h < height - 1; h++)
         for (int h = sh; h < eh; h++)
         {
@@ -154,7 +154,7 @@ void MBP::beliefPropagate(bool visualize = false)
     {
         cout << "iter " << i << " start" << endl;
         // copy msg
-        cout << "copy message" << endl;
+        // cout << "copy message" << endl;
         vector<vector<Mat>> msgCopy(height);
         for (int h = 0; h < height; h++)
         {
@@ -163,7 +163,7 @@ void MBP::beliefPropagate(bool visualize = false)
                 msgCopy[h][w] = msg[h][w].clone();
         }
         // pass
-        int NumThread = 4;
+        int NumThread = 8;
         int sh, eh, lineEveryThread = height / NumThread;
         vector<thread> tpool(NumThread);
         for (int tid = 0; tid < NumThread; tid++)
@@ -213,7 +213,7 @@ Mat MBP::maxProduct(vector<vector<Mat>> &msgCopy, int h, int w, int dir)
 Mat MBP::getDispMap()
 {
     int minIdx = 0;
-    Mat DispMap(cv::Size(width, height), CV_8UC1);
+    Mat DispMap(cv::Size(width, height), CV_16UC1);
     for (int h = 0; h < height; h++)
     {
         for (int w = 0; w < width; w++)
@@ -223,7 +223,7 @@ Mat MBP::getDispMap()
             reduce(msg[h][w], sumMsg, 1, REDUCE_SUM, CV_32FC1);
             sumMsg += obs[h][w];
             // minMaxIdx(sumMsg, &minVal, &maxVal, &minIdx, &maxIdx);
-            DispMap.at<uchar>(h, w) = get_min_idx_m(sumMsg, disp);
+            DispMap.at<ushort>(h, w) = get_min_idx_m(sumMsg, disp);
         }
     }
     return DispMap;
@@ -231,6 +231,6 @@ Mat MBP::getDispMap()
 
 Mat MBP::do_match()
 {
-    beliefPropagate(true);
+    beliefPropagate(false);
     return getDispMap();
 }

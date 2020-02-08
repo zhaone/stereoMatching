@@ -99,7 +99,7 @@ void BP::beliefPropagate(bool visualize = false)
     {
         cout << "iter " << i << " start" << endl;
         // copy msg
-        cout << "copy message" << endl;
+        // cout << "copy message" << endl;
         vector<vector<Mat>> msgCopy(height);
         for (int h = 0; h < height; h++)
         {
@@ -110,7 +110,7 @@ void BP::beliefPropagate(bool visualize = false)
         // pass
         for (int dir = 0; dir < 4; dir++)
         {
-            cout << "dir: " << dir << endl;
+            // cout << "dir: " << dir << endl;
             for (int h = 1; h < height - 1; h++)
             {
                 for (int w = 1; w < width - 1; w++)
@@ -168,7 +168,7 @@ Mat BP::maxProduct(vector<vector<Mat>> &msgCopy, int h, int w, int dir)
 Mat BP::getDispMap()
 {
     int minIdx = 0;
-    Mat DispMap(cv::Size(width, height), CV_8UC1);
+    Mat DispMap(cv::Size(width, height), CV_16UC1);
     for (int h = 0; h < height; h++)
     {
         for (int w = 0; w < width; w++)
@@ -178,7 +178,7 @@ Mat BP::getDispMap()
             reduce(msg[h][w], sumMsg, 1, REDUCE_SUM, CV_32FC1);
             sumMsg += obs[h][w];
             // minMaxIdx(sumMsg, &minVal, &maxVal, &minIdx, &maxIdx);
-            DispMap.at<uchar>(h, w) = get_min_idx(sumMsg, disp);
+            DispMap.at<ushort>(h, w) = get_min_idx(sumMsg, disp);
         }
     }
     return DispMap;
@@ -186,6 +186,6 @@ Mat BP::getDispMap()
 
 Mat BP::do_match()
 {
-    beliefPropagate();
+    beliefPropagate(false);
     return getDispMap();
 }

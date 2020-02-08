@@ -20,7 +20,8 @@ Mat SAD::do_match(Mat &aleftImage, Mat &arightImage)
     cv::copyMakeBorder(leftImg, leftPaddingImg, pb, pb, pb, pb, cv::BORDER_REPLICATE);
     cv::copyMakeBorder(rightImg, rightPaddingImg, pb, pb, pb, pb, cv::BORDER_REPLICATE);
 
-    Mat dispMap(height, width, CV_8UC1);
+    // Mat dispMap(height, width, CV_8UC1);
+    Mat dispMap(height, width, CV_16UC1);
 
     int dim = 2 * radius + 1;
     for (int h = 0; h < height; h++)
@@ -49,7 +50,8 @@ Mat SAD::do_match(Mat &aleftImage, Mat &arightImage)
                     bestIdx = d;
                 }
             }
-            dispMap.at<uchar>(h, w) = bestIdx;
+            // dispMap.at<uchar>(h, w) = bestIdx;
+            dispMap.at<ushort>(h, w) = bestIdx;
         }
     }
     return dispMap;

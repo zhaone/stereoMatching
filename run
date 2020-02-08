@@ -1,0 +1,42 @@
+#!/bin/csh -f
+
+# runs MBP 
+
+if ($#argv != 4) then
+  echo "usage: run <im0.png> <im1.png> <ndisp> <outdir>"
+  exit 1
+endif
+
+# runs algorithm on image pair <im0.png>, <im1.png>, using <ndisp> disparity levels
+
+# creates output in directory <outdir>:
+# disparity maps disp0.pfm (dense), and optionally disp0_s.pfm (sparse - no interpolation of "holes")
+# as well as time.txt (runtime of dense version in seconds)
+
+set im0 = $1
+set im1 = $2
+set ndisp = $3
+set outdir = $4
+
+# construct png and pfm file path
+set pngPath = $outdir/disp0.png
+set pfmPath = $outdir/disp0.pfm
+set timePath = $outdir/time.txt
+
+# find exec file
+set p = $0:h
+if ($p == $0) set p = .
+set program = $p/build/main
+
+# do match and save as png format
+/usr/bin/time -f '%e' -o $outdir/timePath $program $im0 $im1 $ndisp $pngPath MBP
+# $program $im0 $im1 $ndisp $pngPath MBP
+
+# convert to pfm format
+imgcmd $pngPath -float -out $pfmPath
+
+# visualize the pfm file, comment when eval
+# sv $pfmPath
+
+# remove png file
+rm -f $pngPath
