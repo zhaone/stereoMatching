@@ -165,7 +165,7 @@
          <item>
           <widget class="QLabel" name="label_8">
            <property name="text">
-            <string>interation:</string>
+            <string>iteration:</string>
            </property>
           </widget>
          </item>

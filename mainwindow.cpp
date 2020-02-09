@@ -24,13 +24,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_slb_clicked()
 {
-    leftImgPath = QFileDialog::getOpenFileName(NULL, "select left camera image", ".");
+    leftImgPath = QFileDialog::getOpenFileName(NULL, "select left camera image", "./img/Teddy");
     ui->leftImagePath_label->setText(leftImgPath);
 }
 
 void MainWindow::on_srb_clicked()
 {
-    rightImgPath = QFileDialog::getOpenFileName(NULL, "select right camera image", ".");
+    rightImgPath = QFileDialog::getOpenFileName(NULL, "select right camera image", "./img/Teddy");
     ui->rightImagePath_label->setText(rightImgPath);
 }
 
