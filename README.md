@@ -7,13 +7,17 @@ This branch provides a command line version stereo matching program for depth es
 
 ## result
 **Sum of absolute differences. Basic.**
+
 ![Sum of absolute differences](./img/sad.png)
 
 **Normal Cross Correlation. Not very well.**
+
 ![Normal Cross Correlation](./img/ncc.png)
 
 **Belief Propagation. Not bad, smoother.**
+
 ![Belief Propagation](./img/mbp.png)
+
 ## build
 The code depends on [Opencv 4.2](https://opencv.org/releases/), make sure you have installed lib opencv before you build this project. Libtiff4 is not avaliable on My OS(Ubuntu 18.04), so when compiling opencv lib, you'd better add `-DBUILD_TIFF=ON`. Then run:
 
