@@ -15,9 +15,9 @@
 int main(int argc, char const *argv[])
 {
     // parse args
-    if (argc != 5 && argc != 6)
+    if (argc != 6 && argc != 7)
     {
-        std::cout << "usage: main <im0.png> <im1.png> <ndisp> <outdir> <method>" << std::endl;
+        std::cout << "usage: main <im0.png> <im1.png> <ndisp> <outdir> <method> <visualize>" << std::endl;
         std::cout << "method field is optinal, default: Blief Prapagation" << std::endl;
         return -1;
     }
@@ -25,11 +25,11 @@ int main(int argc, char const *argv[])
     std::string im1 = std::string(argv[2]);
     int ndisp = atoi(argv[3]);
     std::string outPath = std::string(argv[4]);
-    std::string method;
-    if (argc == 5)
-        method = "MBP";
-    else
-        method = argv[5];
+    std::string method = std::string(argv[5]);
+    bool vis = false;
+    if (argc == 7)
+        vis = std::string(argv[6]) == "true";
+
     IOHelper ioh;
     ioh.setUp(im0, im1, ndisp, outPath);
     // cv::Mat leftMat(3, 3, CV_32F), rightMat(3, 3, CV_32F);
@@ -71,11 +71,14 @@ int main(int argc, char const *argv[])
     clock_t endTime = clock();
     cout << "method: " << method << " ,cost time: " << (double)(endTime - beginTime) / CLOCKS_PER_SEC << endl;
 
-    // cv::imshow("debug", disparity);
+    
     // for png visualization
-    // disparity *= 65535 / ndisp;
+    if (vis)
+    {
+        disparity *= 65535 / ndisp;
+        cv::imshow("visualize left disp image", disparity);
+        cv::waitKey(0);
+    }
     cv::imwrite(outPath, disparity);
-    // cv::waitKey(0);
-    // cv::destroyWindow("debug");
     return 0;
 }
