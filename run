@@ -29,7 +29,7 @@ if ($p == $0) set p = .
 set program = $p/build/main
 
 # do match and save as png format
-/usr/bin/time -f '%e' -o $outdir/$timePath $program $im0 $im1 $ndisp $pngPath MBP
+/usr/bin/time -f '%e' -o $timePath $program $im0 $im1 $ndisp $pngPath MBP
 # $program $im0 $im1 $ndisp $pngPath MBP
 
 # convert to pfm format
