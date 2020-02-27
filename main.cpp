@@ -71,7 +71,7 @@ int main(int argc, char const *argv[])
     clock_t endTime = clock();
     cout << "method: " << method << " ,cost time: " << (double)(endTime - beginTime) / CLOCKS_PER_SEC << endl;
 
-    
+    cv::imwrite(outPath, disparity);
     // for png visualization
     if (vis)
     {
@@ -79,6 +79,5 @@ int main(int argc, char const *argv[])
         cv::imshow("visualize left disp image", disparity);
         cv::waitKey(0);
     }
-    cv::imwrite(outPath, disparity);
     return 0;
 }
