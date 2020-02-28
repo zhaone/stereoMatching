@@ -70,12 +70,18 @@ MBP::MBP(Mat &aleftImg, Mat &arightImg, const int ndisp, const float smoothLambd
     }
     // cout << "----------------msg[200][200]-------------------" << endl << msg[200][200] << endl;
     // cout << "----------------obs[200][200]-------------------" << endl << obs[200][200] << endl;
+    vector<float> costBuffer(disp);
+    for (int d = 0; d < disp; d++)
+    {
+        costBuffer[d] = log(d + 1);
+    }
     for (int d1 = 0; d1 < disp; d1++)
     {
         for (int d2 = 0; d2 < disp; d2++)
         {
             float diff = float(abs(d1 - d2));
-            smoothCostMat.at<float>(d1, d2) = smoothLambda * (log(diff + 1));
+            // smoothCostMat.at<float>(d1, d2) = smoothLambda * (log(diff + 1));
+            smoothCostMat.at<float>(d1, d2) = smoothLambda * costBuffer[diff];
         }
     }
     // cout << "----------------smoothCostMat-------------------" << endl << smoothCostMat << endl;
@@ -190,20 +196,28 @@ Mat MBP::maxProduct(vector<vector<Mat>> &msgCopy, int h, int w, int dir)
 {
     double minVal;
     Mat res(cv::Size(1, disp), CV_32FC1);
+
+    Mat message = obs[h][w];
+    for (int n = 0; n < dir; n++)
+    {
+        if (n != dir)
+        {
+            message += msgCopy[h][w].col(n);
+        }
+    }
+//    if(h==200 && w == 200)
+//    {
+//        cout<< "-------------message---------------"<<endl;
+//        cout<< message <<endl;
+//        cout<< "-------------cost---------------"<<endl;
+//        cout<< smoothCostMat.col(0) <<endl;
+//    }
+
     for (int d = 0; d < disp; d++)
     {
-        Mat message = smoothCostMat.col(d) + obs[h][w];
-        for (int n = 0; n < dir; n++)
-        {
-            if (n != dir)
-            {
-                message += msgCopy[h][w].col(n);
-            }
-        }
-        message += obs[h][w];
-        minMaxIdx(message, &minVal);
+        Mat tmp = message + smoothCostMat.col(d);
+        minMaxIdx(tmp, &minVal);
         res.at<float>(d, 0) = minVal;
-        // smooth cost !!!!
     }
     return res;
 }
