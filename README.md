@@ -1,5 +1,7 @@
 # stereoMatching
-stereo matching, disparity estimation
+stereo matching, disparity estimation. 
+
+**A Camera Calibration repo of mine is available [here](https://github.com/zhaone/ProjectStereo).**
 
 > Hope this project can help you or evoke your interest in stereo matching is interesting. I would be happy if you give me a star ^_^ !
 
